@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MomCare Risk Assessment & Activity Plan (Full RTCOG Guidelines)</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #fdf2f8; /* Rose-50 */
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo, useRef, useEffect } = React;
+
+        // --- Icons ---
+        const UserIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
+        const DropIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2.69l5.74 5.74c3.2 3.2 3.2 8.38 0 11.58-3.2 3.2-8.38 3.2-11.58 0-3.2-3.2-3.2-8.38 0-11.58L12 2.69z"/></svg>;
+        const HeartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"/></svg>;
+        const ClockIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
+        const CheckIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
+        const RefreshIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>;
+        const CalendarIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>;
+        const BloodIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18.6 4.6a2 2 0 0 0-2.8 0l-1.3 1.3a1 1 0 0 1-1.4 0l-1.3-1.3a2 2 0 0 0-2.8 0l-2.5 2.5a2 2 0 0 0 0 2.8l1.3 1.3a1 1 0 0 1 0 1.4l-1.3 1.3a2 2 0 0 0 0 2.8l2.5 2.5a2 2 0 0 0 2.8 0l1.3-1.3a1 1 0 0 1 1.4 0l1.3 1.3a2 2 0 0 0 2.8 0l2.5-2.5a2 2 0 0 0 0-2.8l-1.3-1.3a1 1 0 0 1 0-1.4l1.3-1.3a2 2 0 0 0 0-2.8L18.6 4.6z"/></svg>;
+        const FetalIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12h.01"/><path d="M15 12h.01"/><path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"/><path d="M20.35 4.65a9 9 0 0 0-16.7 0C2.5 5.55 2 6.72 2 8c0 3.31 2.69 6 6 6h8c3.31 0 6-2.69 6-6 0-1.28-.5-2.45-1.65-3.35z"/></svg>;
+        const WarningIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>;
+
+        // --- Components ---
+        
+        const CheckboxItem = ({ label, checked, onChange, helpText }) => (
+            <label className={`
+                flex items-start p-3 rounded-lg border cursor-pointer transition-all duration-200 mb-2 group
+                ${checked ? 'bg-rose-50 border-rose-400' : 'bg-white border-gray-200 hover:border-rose-300'}
+            `}>
+                <div className={`
+                    mt-0.5 w-5 h-5 rounded border flex items-center justify-center shrink-0 transition-colors
+                    ${checked ? 'bg-rose-500 border-rose-500' : 'border-gray-300 bg-white group-hover:border-rose-300'}
+                `}>
+                    {checked && <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>}
+                </div>
+                <div className="ml-3 flex-1">
+                    <span className={`text-sm font-medium ${checked ? 'text-gray-900' : 'text-gray-600'}`}>{label}</span>
+                    {helpText && <p className="text-xs text-gray-400 mt-0.5">{helpText}</p>}
+                </div>
+                <input type="checkbox" className="hidden" checked={checked} onChange={onChange} />
+            </label>
+        );
+
+        const InputField = ({ label, value, onChange, placeholder, type = "number", suffix, className }) => (
+            <div className={`mb-4 ${className}`}>
+                <label className="block text-gray-700 font-bold mb-1 text-sm">{label}</label>
+                <div className="relative">
+                    <input 
+                        type={type}
+                        className="w-full px-4 py-2.5 rounded-lg border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-rose-400 focus:border-transparent outline-none transition-all text-sm"
+                        placeholder={placeholder}
+                        value={value}
+                        onChange={onChange}
+                    />
+                    {suffix && <span className="absolute right-4 top-2.5 text-gray-400 text-sm">{suffix}</span>}
+                </div>
+            </div>
+        );
+
+        const SectionHeader = ({ icon, title, colorClass, bgClass }) => (
+            <div className={`flex items-center gap-3 mb-4 p-3 rounded-xl ${bgClass}`}>
+                <div className={`${colorClass}`}>{icon}</div>
+                <h3 className={`font-bold text-lg ${colorClass.replace('text-', 'text-opacity-90 text-')}`}>{title}</h3>
+            </div>
+        );
+
+        const ResultCard = ({ title, level, advice, factors, icon }) => {
+            const styles = {
+                high: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-900', badge: 'bg-red-500' },
+                moderate: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-900', badge: 'bg-orange-400' },
+                low: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-900', badge: 'bg-green-500' }
+            };
+            const s = styles[level];
+            const levelText = { high: 'ความเสี่ยงสูง', moderate: 'ความเสี่ยงปานกลาง', low: 'ความเสี่ยงต่ำ' };
+
+            return (
+                <div className={`p-5 rounded-2xl border ${s.bg} ${s.border} mb-4 shadow-sm fade-in h-full`}>
+                    <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center gap-2">
+                            <div className="text-gray-700 opacity-70 scale-90">{icon}</div>
+                            <h4 className="font-bold text-lg text-gray-800">{title}</h4>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold text-white shadow-sm ${s.badge}`}>
+                            {levelText[level]}
+                        </span>
+                    </div>
+
+                    {factors.length > 0 && (
+                        <div className="mb-3 bg-white/60 p-3 rounded-lg text-sm border border-white/50">
+                            <p className="font-bold mb-1 opacity-80 text-xs uppercase tracking-wide">ปัจจัยที่พบ:</p>
+                            <ul className="list-disc list-inside space-y-0.5 opacity-90 text-gray-700">
+                                {factors.map((f, i) => <li key={i}>{f}</li>)}
+                            </ul>
+                        </div>
+                    )}
+                    <p className="text-sm">
+                        <span className="font-bold">คำแนะนำ:</span> {advice}
+                    </p>
+                </div>
+            );
+        };
+
+        const AnemiaFollowUpCard = ({ hct, dateDetected, dateRecheck }) => {
+            if (!hct || Number(hct) >= 33) return null;
+
+            const formatDate = (d) => d ? new Date(d).toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' }) : "-";
+
+            return (
+                <div className="mt-6 bg-red-50 rounded-2xl border border-red-200 p-5 fade-in shadow-sm relative overflow-hidden">
+                    <div className="absolute right-0 top-0 p-4 opacity-10">
+                        <BloodIcon />
+                    </div>
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="bg-red-100 p-2 rounded-full text-red-600">
+                            <WarningIcon />
+                        </div>
+                        <h3 className="font-bold text-lg text-red-800">การติดตามภาวะโลหิตจาง (Anemia Follow-up)</h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div className="bg-white p-3 rounded-xl border border-red-100">
+                            <p className="text-gray-500 text-xs mb-1">ผล Hct ปัจจุบัน</p>
+                            <p className="font-bold text-2xl text-red-600">{hct}% <span className="text-sm font-normal text-red-400">(ซีด)</span></p>
+                        </div>
+                        <div className="bg-white p-3 rounded-xl border border-red-100">
+                            <p className="text-gray-500 text-xs mb-1">วันที่ตรวจพบ</p>
+                            <p className="font-bold text-gray-800">{formatDate(dateDetected)}</p>
+                        </div>
+                        <div className="bg-white p-3 rounded-xl border border-red-100">
+                            <p className="text-gray-500 text-xs mb-1">วันนัดเจาะเลือดซ้ำ (Re-check)</p>
+                            <p className="font-bold text-gray-800">{formatDate(dateRecheck)}</p>
+                        </div>
+                    </div>
+                    
+                    <div className="mt-4 p-3 bg-red-100/50 rounded-lg text-sm text-red-800 border border-red-200">
+                        <span className="font-bold">คำแนะนำพิเศษ:</span> ควรรับประทานยาบำรุงเลือดอย่างเคร่งครัด หลีกเลี่ยงการทานพร้อมนมหรือยาลดกรด และมาตรวจติดตามตามนัด
+                    </div>
+                </div>
+            );
+        };
+
+        const ActivityTable = ({ edc, risks }) => {
+            if (!edc) return null;
+
+            const getDates = (edcDate) => {
+                const edcTime = new Date(edcDate).getTime();
+                const conceptionTime = edcTime - (280 * 24 * 60 * 60 * 1000);
+                
+                const addWeeks = (w) => {
+                    const d = new Date(conceptionTime + (w * 7 * 24 * 60 * 60 * 1000));
+                    return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
+                };
+                return addWeeks;
+            };
+
+            const getDateStr = getDates(edc);
+            let plan = [];
+
+            // 1. First Visit (<12 wks)
+            let firstVisitActs = [
+                "ซักประวัติ ตรวจร่างกาย ประเมินความเสี่ยง",
+                "เจาะเลือดพื้นฐาน (CBC, VDRL, HIV, HBsAg, Blood Group)",
+                "Ultrasound เพื่อยืนยันอายุครรภ์"
+            ];
+            
+            if (risks.preE.level !== 'low') firstVisitActs.push("ตรวจคัดกรองครรภ์เป็นพิษ (วัดความดัน MAP, เจาะเลือด PLGF)");
+            if (risks.gdm.level === 'high') firstVisitActs.push("🚨 ตรวจคัดกรองเบาหวานทันที (50g GCT/OGTT)");
+            if (risks.anemia.level === 'high') firstVisitActs.push("🚨 ตรวจคัดกรองธาลัสซีเมียและ CBC อย่างละเอียด");
+
+            plan.push({ ga: "< 12 สัปดาห์", date: `ก่อน ${getDateStr(12)}`, acts: firstVisitActs });
+
+            // 2. 12-16 wks
+            let w12Acts = [];
+            if (risks.preE.level === 'high') {
+                w12Acts.push("🚨 เริ่มรับประทาน Aspirin 150 mg/วัน (หรือ 81mg 2 เม็ด) ก่อนนอน");
+                w12Acts.push("เสริมแคลเซียม 1-2 g/วัน (หากดื่มนมน้อย)");
+            }
+            
+            let ironDose = "ยาบำรุงเลือด (ธาตุเหล็ก 60 mg/วัน)";
+            if (risks.anemia.level === 'high') {
+                 ironDose = "🚨 ยาบำรุงเลือดเข้มข้น (ธาตุเหล็ก 100+ mg/วัน) ตามแพทย์สั่ง";
+            }
+            w12Acts.push(ironDose);
+            
+            if (w12Acts.length > 0) {
+                 plan.push({ ga: "12 - 16 สัปดาห์", date: `${getDateStr(12)} - ${getDateStr(16)}`, acts: w12Acts });
+            }
+
+            // 3. 16-20 wks
+            let w16Acts = ["ฉีดวัคซีนไข้หวัดใหญ่ (Influenza)"];
+            if (risks.preterm.level === 'high') w16Acts.push("🚨 วัดความยาวปากมดลูก (TVS) / พิจารณา Progesterone");
+            plan.push({ ga: "16 - 20 สัปดาห์", date: `${getDateStr(16)} - ${getDateStr(20)}`, acts: w16Acts });
+
+            // 4. 18-22 wks
+            plan.push({ ga: "18 - 22 สัปดาห์", date: `${getDateStr(18)} - ${getDateStr(22)}`, acts: ["อัลตราซาวนด์ดูความสมบูรณ์ทารก (Detailed Scan)"] });
+
+            // 5. 24-28 wks
+            let w24Acts = ["ตรวจคัดกรองเบาหวาน (Universal Screening) ทุกราย"];
+            plan.push({ ga: "24 - 28 สัปดาห์", date: `${getDateStr(24)} - ${getDateStr(28)}`, acts: w24Acts });
+
+            // 6. 27-36 wks
+            plan.push({ ga: "27 - 36 สัปดาห์", date: `${getDateStr(27)} - ${getDateStr(36)}`, acts: ["ฉีดวัคซีนคอตีบ-บาดทะยัก-ไอกรน (Tdap)", "นับลูกดิ้น (28 wk+)"] });
+
+            // 7. 32-34 wks
+            let w32Acts = [];
+            if (risks.fetal.level === 'high') {
+                w32Acts.push("🚨 เริ่มตรวจสุขภาพทารก (NST/BPP) สัปดาห์ละ 1-2 ครั้ง");
+                w32Acts.push("อัลตราซาวนด์ประเมินการเจริญเติบโต (Growth Scan)");
+            } else {
+                 w32Acts.push("ติดตามการนับลูกดิ้นสม่ำเสมอ");
+            }
+            if (w32Acts.length > 0) {
+                 plan.push({ ga: "32 - 34 สัปดาห์", date: `${getDateStr(32)} - ${getDateStr(34)}`, acts: w32Acts });
+            }
+            
+            // 8. 36 wks
+            let w36Acts = ["ประเมินท่าเด็ก / วางแผนคลอด"];
+            if (risks.preE.level === 'high') w36Acts.push("หยุดยา Aspirin เมื่ออายุครรภ์ 36 สัปดาห์");
+            plan.push({ ga: "36 สัปดาห์ขึ้นไป", date: `ตั้งแต่ ${getDateStr(36)}`, acts: w36Acts });
+
+            return (
+                <div className="mt-8 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden fade-in">
+                    <div className="bg-rose-500 p-4 text-white flex items-center gap-2">
+                        <CalendarIcon />
+                        <h3 className="font-bold text-lg">แผนการดูแลตามแนวทางเวชปฏิบัติ (RTCOG Guideline)</h3>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-sm">
+                            <thead className="bg-rose-50 text-rose-800">
+                                <tr>
+                                    <th className="p-4 font-bold whitespace-nowrap">อายุครรภ์ (GA)</th>
+                                    <th className="p-4 font-bold whitespace-nowrap">ช่วงวันที่</th>
+                                    <th className="p-4 font-bold w-full">กิจกรรมที่แนะนำ</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {plan.map((row, idx) => (
+                                    <tr key={idx} className="hover:bg-gray-50 transition">
+                                        <td className="p-4 font-medium text-gray-900 whitespace-nowrap align-top">{row.ga}</td>
+                                        <td className="p-4 text-gray-500 whitespace-nowrap align-top">{row.date}</td>
+                                        <td className="p-4 align-top">
+                                            <ul className="list-disc list-inside space-y-1 text-gray-700">
+                                                {row.acts.map((act, i) => (
+                                                    <li key={i} className={act.includes("🚨") ? "text-rose-600 font-bold" : ""}>{act}</li>
+                                                ))}
+                                            </ul>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="p-4 bg-gray-50 text-xs text-gray-500 text-center">
+                        * วันที่คำนวณจาก EDC โดยประมาณ โปรดปรึกษาแพทย์เพื่อนัดหมายวันจริง
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [data, setData] = useState({
+                age: '', weight: '', height: '', edc: '',
+                // Lab
+                hct: '', anemiaDetectedDate: '', anemiaRecheckDate: '',
+                // General
+                isTwins: false, isIVF: false, isSmoking: false, isFirstPregnancy: false, isVegetarian: false,
+                // GDM
+                historyGDM: false, familyDM: false, isPreExistingDM: false,
+                // Pre-E
+                historyPreE: false, chronicBP: false, familyPreE: false, isAutoimmune: false,
+                // Preterm
+                historyPreterm: false,
+                // Anemia
+                historyAnemia: false,
+                // Fetal
+                historyStillbirth: false
+            });
+            const [showResult, setShowResult] = useState(false);
+            const resultRef = useRef(null);
+
+            const bmi = useMemo(() => {
+                if (data.weight && data.height) {
+                    const h = data.height / 100;
+                    return (data.weight / (h * h)).toFixed(1);
+                }
+                return null;
+            }, [data.weight, data.height]);
+
+            const isAnemic = useMemo(() => {
+                return data.hct && Number(data.hct) < 33;
+            }, [data.hct]);
+
+            const updateData = (key, val) => {
+                setData(prev => ({ ...prev, [key]: val }));
+                if (showResult) setShowResult(false);
+            };
+
+            const evaluate = () => {
+                const age = Number(data.age) || 0;
+                const b = Number(bmi) || 0;
+
+                // --- 1. Diabetes (GDM) Logic ---
+                let gdmFactors = [];
+                let gdmScore = 0;
+                if (data.isPreExistingDM) { 
+                    gdmScore += 5; gdmFactors.push("เป็นเบาหวานก่อนตั้งครรภ์ (DM Type 1/2)"); 
+                } else {
+                    if (age >= 30) { gdmScore += 1; gdmFactors.push("อายุ ≥ 30 ปี"); }
+                    if (b >= 25) { gdmScore += 1; gdmFactors.push(`BMI ${b} (เกินเกณฑ์)`); }
+                    if (data.familyDM) { gdmScore += 1; gdmFactors.push("คนในครอบครัวเป็นเบาหวาน"); }
+                    if (data.historyGDM) { gdmScore += 2; gdmFactors.push("เคยเป็นเบาหวานขณะตั้งครรภ์"); }
+                }
+                const gdmLevel = gdmScore >= 2 ? 'high' : gdmScore === 1 ? 'moderate' : 'low';
+
+                // --- 2. Preeclampsia (Pre-E) Logic ---
+                let preFactors = [];
+                let highRiskCount = 0;
+                let moderateRiskCount = 0;
+
+                if (data.historyPreE) { highRiskCount++; preFactors.push("เคยครรภ์เป็นพิษ"); }
+                if (data.chronicBP) { highRiskCount++; preFactors.push("ความดันสูงเรื้อรัง/โรคไต"); }
+                if (data.isAutoimmune) { highRiskCount++; preFactors.push("โรคแพ้ภูมิตัวเอง (SLE/APS)"); }
+                if (data.isPreExistingDM) { highRiskCount++; preFactors.push("เป็นเบาหวานก่อนตั้งครรภ์"); }
+                if (data.isTwins) { highRiskCount++; preFactors.push("ครรภ์แฝด"); }
+
+                if (data.isFirstPregnancy) { moderateRiskCount++; preFactors.push("ครรภ์แรก"); }
+                if (age >= 35) { moderateRiskCount++; preFactors.push("อายุ ≥ 35 ปี"); }
+                if (b >= 30) { moderateRiskCount++; preFactors.push(`BMI ${b} (อ้วน)`); }
+                if (data.familyPreE) { moderateRiskCount++; preFactors.push("แม่/พี่น้อง เป็นครรภ์เป็นพิษ"); }
+                if (data.isIVF) { moderateRiskCount++; preFactors.push("ตั้งครรภ์ IVF"); }
+
+                let preLevel = 'low';
+                let preAdvice = "ความเสี่ยงต่ำ สังเกตอาการบวม/ปวดศีรษะ";
+                if (highRiskCount >= 1) {
+                    preLevel = 'high';
+                    preAdvice = "เสี่ยงสูง! แนะนำเริ่ม Aspirin 150mg ก่อนนอน ช่วง 11-14 สัปดาห์";
+                } else if (moderateRiskCount >= 2) {
+                    preLevel = 'high';
+                    preAdvice = "เสี่ยงสูง (จากปัจจัยร่วม)! พิจารณาเริ่ม Aspirin";
+                } else if (moderateRiskCount === 1) {
+                    preLevel = 'moderate';
+                    preAdvice = "เสี่ยงปานกลาง ติดตามความดันโลหิตอย่างใกล้ชิด";
+                }
+
+                // --- 3. Preterm Birth Logic ---
+                let termFactors = [];
+                let termScore = 0;
+                if (data.historyPreterm) { termScore += 2; termFactors.push("เคยคลอดก่อนกำหนด"); }
+                if (data.isTwins) { termScore += 2; termFactors.push("ครรภ์แฝด"); }
+                if (data.isSmoking) { termScore += 1; termFactors.push("สูบบุหรี่"); }
+                if (age < 18 || age > 40) { termScore += 1; termFactors.push(age < 18 ? "อายุน้อยกว่า 18" : "อายุมากกว่า 40"); }
+                const termLevel = termScore >= 2 ? 'high' : termScore === 1 ? 'moderate' : 'low';
+
+                // --- 4. Anemia Risk ---
+                let anemiaFactors = [];
+                let anemiaScore = 0;
+                // Add explicit Lab result factor
+                if (isAnemic) { anemiaScore += 5; anemiaFactors.push(`ผล Hct ${data.hct}% (ต่ำกว่า 33%)`); }
+                if (data.historyAnemia) { anemiaScore += 2; anemiaFactors.push("ประวัติซีด/ธาลัสซีเมีย"); }
+                if (data.isVegetarian) { anemiaScore += 1; anemiaFactors.push("ทานมังสวิรัติ"); }
+                if (data.isTwins) { anemiaScore += 1; anemiaFactors.push("ครรภ์แฝด"); }
+                if (age < 20) { anemiaScore += 1; anemiaFactors.push("ตั้งครรภ์วัยรุ่น"); }
+                
+                const anemiaLevel = anemiaScore >= 2 ? 'high' : anemiaScore === 1 ? 'moderate' : 'low';
+                const anemiaAdvice = anemiaLevel === 'high' 
+                    ? "เสี่ยงสูง/ตรวจพบภาวะซีด ควรได้รับยาบำรุงเลือดขนาดรักษา และติดตามผล Hct"
+                    : "ความเสี่ยงทั่วไป ควรรับประทานยาบำรุงเลือด 60 mg/วัน";
+
+                // --- 5. Fetal Well-being ---
+                let fetalFactors = [];
+                let fetalRisk = false;
+                if (data.historyStillbirth) { fetalRisk = true; fetalFactors.push("ประวัติทารกเสียชีวิตในครรภ์"); }
+                if (data.isPreExistingDM || data.chronicBP || data.isAutoimmune) { fetalRisk = true; fetalFactors.push("โรคประจำตัวมารดา"); }
+                if (data.isIVF) { fetalRisk = true; fetalFactors.push("ตั้งครรภ์ IVF"); }
+                if (b >= 30) { fetalRisk = true; fetalFactors.push("BMI มารดา ≥ 30"); }
+                if (age >= 35) { fetalRisk = true; fetalFactors.push("อายุมาก"); }
+
+                const fetalLevel = fetalRisk ? 'high' : 'low';
+                const fetalAdvice = fetalLevel === 'high'
+                    ? "เสี่ยงสูง ควรตรวจสุขภาพทารก (NST) เริ่มที่ 32-34 สัปดาห์"
+                    : "ความเสี่ยงทั่วไป นับลูกดิ้นสม่ำเสมอหลัง 28 สัปดาห์";
+
+                return {
+                    gdm: { level: gdmLevel, advice: gdmLevel === 'high' ? "ควรตรวจ OGTT ทันที" : gdmLevel === 'moderate' ? "รอตรวจ 24-28 วีค" : "ฝากครรภ์ตามปกติ", factors: gdmFactors },
+                    preE: { level: preLevel, advice: preAdvice, factors: preFactors },
+                    preterm: { level: termLevel, advice: termLevel === 'high' ? "ปรึกษาแพทย์เรื่อง Progesterone" : termLevel === 'moderate' ? "พักผ่อนให้เพียงพอ" : "สังเกตอาการ", factors: termFactors },
+                    anemia: { level: anemiaLevel, advice: anemiaAdvice, factors: anemiaFactors },
+                    fetal: { level: fetalLevel, advice: fetalAdvice, factors: fetalFactors }
+                };
+            };
+
+            const handleCalculate = () => {
+                setShowResult(true);
+                setTimeout(() => {
+                    resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            };
+
+            const results = showResult ? evaluate() : null;
+
+            return (
+                <div className="max-w-4xl mx-auto p-4 pb-20">
+                    <div className="text-center mb-6">
+                        <h1 className="text-2xl font-bold text-gray-800">MomCare Risk & Plan</h1>
+                        <p className="text-gray-500 text-sm">ประเมินความเสี่ยงและวางแผนการดูแล (ตามแนวทางราชวิทยาลัยฯ)</p>
+                    </div>
+
+                    <div className="space-y-6">
+                        {/* 1. General Info & Lab */}
+                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                            <SectionHeader icon={<UserIcon />} title="ข้อมูลพื้นฐาน & ผลเลือด" bgClass="bg-rose-50" colorClass="text-rose-600" />
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
+                                <InputField label="อายุ (ปี)" placeholder="28" value={data.age} onChange={e => updateData('age', e.target.value)} />
+                                <InputField label="วันครบกำหนดคลอด (Correct EDC)" type="date" value={data.edc} onChange={e => updateData('edc', e.target.value)} />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <InputField label="น้ำหนัก (กก.)" placeholder="50" value={data.weight} onChange={e => updateData('weight', e.target.value)} />
+                                <InputField label="ส่วนสูง (ซม.)" placeholder="160" value={data.height} onChange={e => updateData('height', e.target.value)} />
+                            </div>
+                            
+                            {/* Hct Input */}
+                            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-4">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <div className="bg-rose-100 p-1.5 rounded-lg"><BloodIcon /></div>
+                                    <h4 className="font-bold text-gray-700">ผลเลือด (Laboratory)</h4>
+                                </div>
+                                <InputField 
+                                    label="ค่าความเข้มข้นเลือด (Hematocrit %)" 
+                                    placeholder="เช่น 35" 
+                                    value={data.hct} 
+                                    onChange={e => updateData('hct', e.target.value)}
+                                    suffix="%"
+                                    className="mb-0"
+                                />
+                                
+                                {isAnemic && (
+                                    <div className="mt-4 p-4 bg-white border border-red-200 rounded-lg fade-in">
+                                        <p className="text-red-600 font-bold text-sm mb-3 flex items-center gap-2">
+                                            <WarningIcon /> ตรวจพบภาวะโลหิตจาง (Hct &lt; 33%)
+                                        </p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <InputField 
+                                                label="วันที่ตรวจพบ (Date Detected)" 
+                                                type="date" 
+                                                value={data.anemiaDetectedDate} 
+                                                onChange={e => updateData('anemiaDetectedDate', e.target.value)}
+                                            />
+                                            <InputField 
+                                                label="วันที่นัดเจาะเลือดซ้ำ (Date Re-check)" 
+                                                type="date" 
+                                                value={data.anemiaRecheckDate} 
+                                                onChange={e => updateData('anemiaRecheckDate', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {bmi && (
+                                <div className="text-center p-2 bg-gray-50 rounded-lg text-gray-600 text-sm mb-4">
+                                    ค่า BMI ของคุณ: <span className="font-bold text-gray-800">{bmi}</span>
+                                </div>
+                            )}
+
+                            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                <CheckboxItem label="ครรภ์แรก (First Pregnancy)" checked={data.isFirstPregnancy} onChange={() => updateData('isFirstPregnancy', !data.isFirstPregnancy)} />
+                                <CheckboxItem label="ครรภ์แฝด" checked={data.isTwins} onChange={() => updateData('isTwins', !data.isTwins)} />
+                                <CheckboxItem label="ตั้งครรภ์ด้วย IVF" checked={data.isIVF} onChange={() => updateData('isIVF', !data.isIVF)} />
+                                <CheckboxItem label="สูบบุหรี่" checked={data.isSmoking} onChange={() => updateData('isSmoking', !data.isSmoking)} />
+                                <CheckboxItem label="ทานมังสวิรัติ (Vegetarian)" checked={data.isVegetarian} onChange={() => updateData('isVegetarian', !data.isVegetarian)} />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* 2. Diabetes Risk */}
+                            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 h-full">
+                                <SectionHeader icon={<DropIcon />} title="ความเสี่ยงเบาหวาน" bgClass="bg-teal-50" colorClass="text-teal-600" />
+                                <div className="space-y-2">
+                                    <CheckboxItem label="เป็นเบาหวานก่อนตั้งครรภ์ (DM)" checked={data.isPreExistingDM} onChange={() => updateData('isPreExistingDM', !data.isPreExistingDM)} helpText="เสี่ยงสูงต่อครรภ์เป็นพิษด้วย" />
+                                    <CheckboxItem label="เคยเป็นเบาหวานขณะตั้งครรภ์ (GDM)" checked={data.historyGDM} onChange={() => updateData('historyGDM', !data.historyGDM)} />
+                                    <CheckboxItem label="คนในครอบครัวเป็นเบาหวาน" checked={data.familyDM} onChange={() => updateData('familyDM', !data.familyDM)} />
+                                </div>
+                            </div>
+
+                            {/* 3. Pre-E Risk */}
+                            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 h-full">
+                                <SectionHeader icon={<HeartIcon />} title="ความเสี่ยงครรภ์เป็นพิษ" bgClass="bg-orange-50" colorClass="text-orange-600" />
+                                <div className="space-y-2 mb-3">
+                                    <CheckboxItem label="เคยมีภาวะ 'ครรภ์เป็นพิษ'" checked={data.historyPreE} onChange={() => updateData('historyPreE', !data.historyPreE)} />
+                                    <CheckboxItem label="ความดันสูงเรื้อรัง / โรคไต" checked={data.chronicBP} onChange={() => updateData('chronicBP', !data.chronicBP)} />
+                                    <CheckboxItem label="โรคแพ้ภูมิตัวเอง (SLE / APS)" checked={data.isAutoimmune} onChange={() => updateData('isAutoimmune', !data.isAutoimmune)} />
+                                </div>
+                                <CheckboxItem label="แม่/พี่สาว/น้องสาว เป็นครรภ์เป็นพิษ" checked={data.familyPreE} onChange={() => updateData('familyPreE', !data.familyPreE)} />
+                            </div>
+
+                            {/* 4. Preterm Risk */}
+                            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 h-full">
+                                <SectionHeader icon={<ClockIcon />} title="ความเสี่ยงคลอดก่อนกำหนด" bgClass="bg-indigo-50" colorClass="text-indigo-600" />
+                                <CheckboxItem label="เคยคลอดก่อนกำหนด" checked={data.historyPreterm} onChange={() => updateData('historyPreterm', !data.historyPreterm)} helpText="คลอดก่อน 37 สัปดาห์" />
+                            </div>
+
+                             {/* 5. Additional Risks */}
+                             <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 h-full">
+                                <SectionHeader icon={<BloodIcon />} title="ความเสี่ยงอื่นๆ" bgClass="bg-pink-50" colorClass="text-pink-600" />
+                                <div className="space-y-2">
+                                    <CheckboxItem label="ประวัติโลหิตจาง/ธาลัสซีเมีย" checked={data.historyAnemia} onChange={() => updateData('historyAnemia', !data.historyAnemia)} />
+                                    <CheckboxItem label="เคยทารกเสียชีวิตในครรภ์" checked={data.historyStillbirth} onChange={() => updateData('historyStillbirth', !data.historyStillbirth)} helpText="เพิ่มความเสี่ยงทารกในครรภ์นี้" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Action Button */}
+                        <button 
+                            onClick={handleCalculate}
+                            disabled={!data.age || !data.weight}
+                            className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg transition-all transform active:scale-95 flex items-center justify-center gap-2
+                                ${!data.age || !data.weight 
+                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                                    : 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-200'}
+                            `}
+                        >
+                            <CheckIcon /> ประมวลผลและสร้างแผนการดูแล
+                        </button>
+
+                        {/* Results Section */}
+                        {showResult && results && (
+                            <div ref={resultRef} className="pt-6 border-t-2 border-dashed border-gray-200 fade-in">
+                                <div className="text-center mb-6">
+                                    <h2 className="text-2xl font-bold text-gray-800">ผลการประเมิน</h2>
+                                    <p className="text-sm text-gray-500">วิเคราะห์ตามแนวทางเวชปฏิบัติ RTCOG</p>
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <ResultCard title="เบาหวาน (GDM)" level={results.gdm.level} advice={results.gdm.advice} factors={results.gdm.factors} icon={<DropIcon />} />
+                                    <ResultCard title="ครรภ์เป็นพิษ" level={results.preE.level} advice={results.preE.advice} factors={results.preE.factors} icon={<HeartIcon />} />
+                                    <ResultCard title="คลอดก่อนกำหนด" level={results.preterm.level} advice={results.preterm.advice} factors={results.preterm.factors} icon={<ClockIcon />} />
+                                    <ResultCard title="ภาวะโลหิตจาง" level={results.anemia.level} advice={results.anemia.advice} factors={results.anemia.factors} icon={<BloodIcon />} />
+                                    <ResultCard title="สุขภาพทารก" level={results.fetal.level} advice={results.fetal.advice} factors={results.fetal.factors} icon={<FetalIcon />} />
+                                </div>
+
+                                {/* Separated Anemia Follow Up Card */}
+                                <AnemiaFollowUpCard 
+                                    hct={data.hct} 
+                                    dateDetected={data.anemiaDetectedDate}
+                                    dateRecheck={data.anemiaRecheckDate}
+                                />
+
+                                {/* Activity Table */}
+                                <ActivityTable edc={data.edc} risks={results} />
+                                
+                                <button 
+                                    onClick={() => {
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                        setData({
+                                            age: '', weight: '', height: '', edc: '',
+                                            hct: '', anemiaDetectedDate: '', anemiaRecheckDate: '',
+                                            isTwins: false, isIVF: false, isSmoking: false, isFirstPregnancy: false, isVegetarian: false,
+                                            historyGDM: false, familyDM: false, isPreExistingDM: false,
+                                            historyPreE: false, chronicBP: false, familyPreE: false, isAutoimmune: false,
+                                            historyPreterm: false, historyAnemia: false, historyStillbirth: false
+                                        });
+                                        setShowResult(false);
+                                    }}
+                                    className="w-full mt-8 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 flex items-center justify-center gap-2"
+                                >
+                                    <RefreshIcon /> เริ่มประเมินใหม่
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
